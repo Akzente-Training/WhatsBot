@@ -14,6 +14,7 @@ export const run = (message: Message, args: string[] = null) => {
         { name: "translate", description: "Translate text", eg: "translate fr Hello guys!" },
         { name: "chat", description: "Chat with Gemini AI", eg: "chat Hello gemini!" },
         // { name: "gpt", description: "Chat with ChatGPT", eg: "gpt Hello chatgpt!" },
+        { name: "mail", description: "Send a mail", eg: "mail Hello Alex" },
         { name: "meme", description: "Get random meme", eg: "meme" },
         { name: "joke", description: "Get random joke", eg: "joke" },
         { name: "get", description: "Download file from a social media (TikTok, Twitter, LinkedIn, Pinterest, Snapchat, Youtube, Instagram, Facebook)", eg: "get <social-media-video-url>" },

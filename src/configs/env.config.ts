@@ -15,10 +15,25 @@ class EnvConfig {
     static OPENWEATHERMAP_API_KEY = process.env.OPENWEATHERMAP_API_KEY;
     static SPEECHIFY_API_KEY = process.env.SPEECHIFY_API_KEY;
     static ASSEMBLYAI_API_KEY = process.env.ASSEMBLYAI_API_KEY;
+    static SENDMAIL_HOST = process.env.SENDMAIL_HOST;
+    static SENDMAIL_USER = process.env.SENDMAIL_USER;
+    static SENDMAIL_PASS = process.env.SENDMAIL_PASS;
     static ENV = process.env.ENV;
     static PORT = process.env.PORT;
 
     static validate() {
+        logger.info("Validating environment variables...");
+        logger.info("GEMINI_API_KEY: " + this.GEMINI_API_KEY);
+        logger.info("CHAT_GPT_PROJECT_ID: " + this.CHAT_GPT_PROJECT_ID);
+        logger.info("CHAT_GPT_ORG_ID: " + this.CHAT_GPT_ORG_ID);
+        logger.info("CHAT_GPT_API_KEY: " + this.CHAT_GPT_API_KEY);
+        logger.info("PUPPETEER_EXECUTABLE_PATH: " + this.PUPPETEER_EXECUTABLE_PATH);
+        logger.info("OPENWEATHERMAP_API_KEY: " + this.OPENWEATHERMAP_API_KEY);
+        logger.info("SPEECHIFY_API_KEY: " + this.SPEECHIFY_API_KEY);
+        logger.info("ASSEMBLYAI_API_KEY: " + this.ASSEMBLYAI_API_KEY);
+        logger.info("SENDMAIL_HOST: " + this.SENDMAIL_HOST);
+        logger.info("SENDMAIL_USER: " + this.SENDMAIL_USER);
+        logger.info("SENDMAIL_PASS length: " + (this.SENDMAIL_PASS ? this.SENDMAIL_PASS.length : 0));
 
         if (!fs.existsSync(".env")) {
             throw new Error(".env file is missing. Please create a .env file at the root directory out of the .env.example file.");

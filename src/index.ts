@@ -29,8 +29,8 @@ let qrData = {
 
 client.on('ready', () => {
     qrData.qrScanned = true;
-    const asciiArt = readAsciiArt();
-    logger.info(asciiArt || "Ready!");
+    // const asciiArt = readAsciiArt();
+    logger.info("Ready!");
     // scheduleCrons();
 });
 
