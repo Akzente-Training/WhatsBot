@@ -11,6 +11,7 @@ import { identifySocialNetwork } from "./utils/get.util";
 import EnvConfig from "./configs/env.config";
 import apiRoutes from "./api/index.api";
 import { onboard } from "./utils/onboarding.util";
+import { forwardMessageByMail } from "./utils/sendmail.util";
 
 const { Client } = require("whatsapp-web.js");
 const path = require("path");
@@ -47,17 +48,35 @@ client.on('message_create', async (message: Message) => {
 
     const content = message.body.trim();
 
-    if (AppConfig.instance.getSupportedMessageTypes().indexOf(message.type) === -1) {
-        return;
+    chat = await message.getChat();
+    if (chat.isGroup) {
+        logger.info(`Message received in group ${chat.name}:`);
     }
 
     let user = await message.getContact();
-    logger.info(`Message received from @${user.pushname} (${user.number}) : ${content}`);
+    logger.info(`Message received from @${user.pushname} (${await user.getFormattedNumber()}) : ${content}`);
+
+    // Log chat.name:
+    logger.info(`chat.name: ${chat.name}`);
+    // List of chat.name values:
+    // - Power of 8 2024
+    // - Bernhard Kaindl
+    // - Denise Brims
+    const names = ["Power of 8 2024", "Bernhard Kaindl", "Denise Brims"];
+    if (names.includes(chat.name)) {
+        await chat.sendStateTyping();
+        await forwardMessageByMail(message, chat, user);
+        await chat.clearState();
+        return;
+    }
+
+    if (AppConfig.instance.getSupportedMessageTypes().indexOf(message.type) === -1) {
+        logger.info(`Unsupported message type: ${message.type}`);
+        return;  // Image
+    }
 
     const args = content.slice(prefix.length).trim().split(/ +/);
     const command = args.shift()?.toLowerCase();
-
-    chat = await message.getChat();
 
     try {
 
