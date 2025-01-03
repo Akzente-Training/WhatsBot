@@ -22,14 +22,25 @@ export const forwardMessageByMail = async (message: Message, chat: Chat, contact
     // append the contact number to the frominfo
     frominfo = `${frominfo}<br>Tel: ${await contact.getFormattedNumber()}`;
 
-    // Try to get the email address from the contact
-    let to = "Bernhard Kaindl <kaindl@mailo.com>";
-    if (contact.pushname === "Denise") {
-        from = "Denise Brims <brimsyoga@gmail.com>";
-        to = "Alexandra Wimmer <alexandra@akzente.co.at"
-    } else if (contact.number === "436805503361") {
-        from = "Bernhard Kaindl <bernhard@mailo.com>";
+    // Get the labels of the chat and extract the "To" and "From" labels for the mail
+    let to_list = [];
+    const labels = (await chat.getLabels()).map(l => l.name)
+    for (let label of labels) {
+        if (label.startsWith("To ")) {
+            let to = label.substring(3);
+            logger.info(`Forwarding to ${to}`);
+            to_list.push(to);
+        }
+        if (label.startsWith("From ")) {
+            from = `${from} <${label.substring(5)}>`;
+            logger.info(`Forwarding from ${from}`);
+        }
     }
+    let to = to_list.join(", ");
+
+    // Fall back to a default if the labels are not set
+    if (to === "") to = "Bernhard Kaindl <kaindl@mailo.com>";
+
     let sender = frominfo;
     logger.info(`Message received from ~${contact.pushname} (${contact.number})`);
 
@@ -51,10 +62,17 @@ export const forwardMessageByMail = async (message: Message, chat: Chat, contact
     body = body.replace(/([\p{Emoji}] )/gu, "$1<p>");
 
     const mail = {
-        from: from,
+        from: EnvConfig.SENDMAIL_USER, // sender address must be the same as authenticated user
         to: to,
         subject: `WhatsApp Message from ${sender}`,
         html: `${body}<p>--<br>${frominfo}`,
+        headers: {
+            "X-Mailer": "WhatsBot",
+            "X-Priority": "1 (Highest)",
+            "X-MSMail-Priority": "High",
+            "Importance": "High",
+            "Reply-To": from
+        },
         attachments: []
     };
     if (message.hasMedia) {

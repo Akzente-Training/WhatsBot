@@ -48,26 +48,28 @@ client.on('message_create', async (message: Message) => {
 
     const content = message.body.trim();
 
+    if (message.fromMe) {
+        logger.info(`Message sent from me to ${message.to}: ${content}`);
+        return;
+    }
+
     chat = await message.getChat();
     if (chat.isGroup) {
-        logger.info(`Message received in group ${chat.name}:`);
+        logger.info(`Message in group ${chat.name} from ${message.author}`);
     }
 
     let user = await message.getContact();
-    logger.info(`Message received from @${user.pushname} (${await user.getFormattedNumber()}) : ${content}`);
+    logger.info(`Message received from @${user.pushname} (${await user.getFormattedNumber()}): ${content}`);
 
-    // Log chat.name:
-    logger.info(`chat.name: ${chat.name}`);
-    // List of chat.name values:
-    // - Power of 8 2024
-    // - Bernhard Kaindl
-    // - Denise Brims
-    const names = ["Power of 8 2024", "Bernhard Kaindl", "Denise Brims"];
-    if (names.includes(chat.name)) {
-        await chat.sendStateTyping();
-        await forwardMessageByMail(message, chat, user);
-        await chat.clearState();
-        return;
+    // If one of the labels starts with To, then forward the message by mail
+    const labels = (await chat.getLabels()).map(l => l.name)
+    for (let label of labels) {
+        if (label.startsWith("To ")) {
+            await chat.sendStateTyping();
+            await forwardMessageByMail(message, chat, user);
+            await chat.clearState();
+            return;
+        }
     }
 
     if (AppConfig.instance.getSupportedMessageTypes().indexOf(message.type) === -1) {
