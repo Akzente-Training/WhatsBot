@@ -106,16 +106,14 @@ export const forwardMessageByMail = async (message: Message, chat: Chat, contact
     try {
         const info = await sendMail(mail)
         logger.info(`Email sent: ${info.response}`);
-        if (chat.name === "Power of 8 2024") {
-            return info;
-        }
-        if (chat.name !== "Bernhard Kaindl") {
-            return info;
-        }
         if (info.response === "250 Message to be delivered") {
-            message.react("📧");
+            message.star();
+            if (!chat.isGroup)  // do not react to group messages
+                message.react("📧");
         } else {
-            message.reply(`Email sent: ${info.response}`);
+            // in any other case, reply to the message with the email response
+            if (!chat.isGroup)  // do not reply to group messages
+                message.reply(`Email sent: ${info.response}`);
         }
         return info;
     } catch (error) {
