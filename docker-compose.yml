@@ -1,14 +1,15 @@
 services:
   app:
     build: .
-    image: yaasiinayeva/whatsbot:latest
-    container_name: whatsbot
+    image: bkaindl/whatsmail:latest
+    container_name: whatsmail
     restart: unless-stopped
     ports:
-      - 3000:3000
+      - 666:3000
     networks:
-      - whatsbot
+      - web
 
 networks:
-  whatsbot:
-    driver: bridge
+  web:
+    name: web
+    external: true
