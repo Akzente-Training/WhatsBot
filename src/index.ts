@@ -11,6 +11,7 @@ import { identifySocialNetwork } from "./utils/get.util";
 import EnvConfig from "./configs/env.config";
 import apiRoutes from "./api/index.api";
 import { onboard } from "./utils/onboarding.util";
+import { forwardMessageByMail } from "./utils/sendmail.util";
 
 const { Client } = require("whatsapp-web.js");
 const path = require("path");
@@ -29,8 +30,8 @@ let qrData = {
 
 client.on('ready', () => {
     qrData.qrScanned = true;
-    const asciiArt = readAsciiArt();
-    logger.info(asciiArt || "Ready!");
+    // const asciiArt = readAsciiArt();
+    logger.info("Ready!");
     // scheduleCrons();
 });
 
@@ -47,17 +48,37 @@ client.on('message_create', async (message: Message) => {
 
     const content = message.body.trim();
 
-    if (AppConfig.instance.getSupportedMessageTypes().indexOf(message.type) === -1) {
+    if (message.fromMe) {
+        logger.info(`Message sent from me to ${message.to}: ${content}`);
         return;
     }
 
+    chat = await message.getChat();
+    if (chat.isGroup) {
+        logger.info(`Message in group ${chat.name} from ${message.author}`);
+    }
+
     let user = await message.getContact();
-    logger.info(`Message received from @${user.pushname} (${user.number}) : ${content}`);
+    logger.info(`Message received from @${user.pushname} (${await user.getFormattedNumber()}): ${content}`);
+
+    // If one of the labels starts with To, then forward the message by mail
+    const labels = (await chat.getLabels()).map(l => l.name)
+    for (let label of labels) {
+        if (label.startsWith("To ")) {
+            await chat.sendStateTyping();
+            await forwardMessageByMail(message, chat, user);
+            await chat.clearState();
+            return;
+        }
+    }
+
+    if (AppConfig.instance.getSupportedMessageTypes().indexOf(message.type) === -1) {
+        logger.info(`Unsupported message type: ${message.type}`);
+        return;  // Image
+    }
 
     const args = content.slice(prefix.length).trim().split(/ +/);
     const command = args.shift()?.toLowerCase();
-
-    chat = await message.getChat();
 
     try {
 
